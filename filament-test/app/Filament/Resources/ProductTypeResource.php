@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductCategoryResource\Pages;
-use App\Models\ProductCategory;
+use App\Filament\Resources\ProductTypeResource\Pages;
+use App\Models\ProductType;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
 
-class ProductCategoryResource extends Resource
+class ProductTypeResource extends Resource
 {
-    protected static ?string $model = ProductCategory::class;
+    protected static ?string $model = ProductType::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-collection';
 
@@ -25,9 +25,6 @@ class ProductCategoryResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Textarea::make('description')
                     ->maxLength(65535),
-                Forms\Components\TextInput::make('url')
-                    ->url()
-                    ->maxLength(255),
             ]);
     }
 
@@ -38,7 +35,6 @@ class ProductCategoryResource extends Resource
                 Tables\Columns\TextColumn::make('id')->sortable(),
                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('description')->limit(50),
-                Tables\Columns\TextColumn::make('url')->limit(50),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -51,9 +47,9 @@ class ProductCategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProductCategories::route('/'),
-            'create' => Pages\CreateProductCategory::route('/create'),
-            'edit' => Pages\EditProductCategory::route('/{record}/edit'),
+            'index' => Pages\ListProductTypes::route('/'),
+            'create' => Pages\CreateProductType::route('/create'),
+            'edit' => Pages\EditProductType::route('/{record}/edit'),
         ];
     }
 }

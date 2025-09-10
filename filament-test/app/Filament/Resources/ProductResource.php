@@ -4,8 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\ProductColor;
+use App\Models\ProductCategory;
 use App\Models\ProductType;
 use Filament\Forms;
 use Filament\Resources\Form;
@@ -17,7 +17,7 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cube';
+    protected static ?string $navigationIcon = 'heroicon-o-collection';
 
     public static function form(Form $form): Form
     {
@@ -25,30 +25,34 @@ class ProductResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(150),
+                    ->maxLength(255),
 
-                Forms\Components\Textarea::make('description')
-                    ->maxLength(500),
+                Forms\Components\Select::make('product_type_id')
+                    ->label('Product Type')
+                    ->options(ProductType::all()->pluck('name', 'id'))
+                    ->required()
+                    ->reactive(),
+
+                Forms\Components\Select::make('product_category_id')
+                    ->label('Product Category')
+                    ->options(function (callable $get) {
+                        $typeId = $get('product_type_id');
+                        if ($typeId) {
+                            return ProductCategory::whereHas('types', function ($query) use ($typeId) {
+                                $query->where('product_types.id', $typeId);
+                            })->pluck('name', 'id');
+                        }
+                        return ProductCategory::pluck('name', 'id');
+                    })
+                    ->required(),
 
                 Forms\Components\Select::make('product_color_id')
-                    ->label('Color')
+                    ->label('Product Color')
                     ->options(ProductColor::all()->pluck('name', 'id'))
-                    ->searchable()
                     ->required(),
 
-                Forms\Components\Select::make('types')
-                    ->label('Product Types')
-                    ->multiple()
-                    ->relationship('types', 'name')
-                    ->searchable()
-                    ->required(),
-
-                Forms\Components\Select::make('categories')
-                    ->label('Categories')
-                    ->multiple()
-                    ->relationship('categories', 'name')
-                    ->searchable()
-                    ->helperText('Only categories that share product types will be valid.'),
+                Forms\Components\Textarea::make('description')
+                    ->maxLength(65535),
             ]);
     }
 
@@ -58,16 +62,11 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->sortable(),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('color.name')->label('Color'),
-                Tables\Columns\BadgeColumn::make('types.name')
-                    ->colors(['primary'])
-                    ->label('Types'),
-                Tables\Columns\BadgeColumn::make('categories.name')
-                    ->colors(['success'])
-                    ->label('Categories'),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),
+                Tables\Columns\TextColumn::make('productType.name')->label('Type')->sortable(),
+                Tables\Columns\TextColumn::make('productCategory.name')->label('Category')->sortable(),
+                Tables\Columns\TextColumn::make('productColor.name')->label('Color')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
-            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

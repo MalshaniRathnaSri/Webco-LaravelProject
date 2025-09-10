@@ -13,4 +13,9 @@ class ProductType extends Model
         'name',
         'description',
     ];
+
+    public function categories()
+    {
+        return $this->belongsToMany(ProductCategory::class, 'category_type');
+    }
 }

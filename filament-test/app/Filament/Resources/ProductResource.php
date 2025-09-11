@@ -12,6 +12,8 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
+use Illuminate\Support\Collection;
+use Filament\Tables\Columns\ViewColumn;
 
 class ProductResource extends Resource
 {
@@ -66,13 +68,30 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('productCategory.name')->label('Category')->sortable(),
                 Tables\Columns\TextColumn::make('productColor.name')->label('Color')->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+
+                Tables\Columns\TextColumn::make('status')->label('Status')->sortable(),
+
+                ViewColumn::make('status_bar')->label('Status Bar')->view('filament.components.status-bar'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
+           ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-            ]);
+
+                Tables\Actions\BulkAction::make('processSelected')
+                    ->label('Process Selected')
+                    ->action(function (Collection $records) {
+                        foreach ($records as $record) {
+                            \App\Jobs\ProcessProduct::dispatch($record);
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('Selected products processed!')
+                            ->send();
+                    }),
+                ]);
     }
 
     public static function getRelations(): array

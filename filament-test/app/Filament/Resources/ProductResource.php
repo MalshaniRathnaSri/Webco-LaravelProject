@@ -14,6 +14,7 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Support\Collection;
 use Filament\Tables\Columns\ViewColumn;
+use App\Jobs\UpdateProductStatus;
 
 class ProductResource extends Resource
 {
@@ -55,6 +56,9 @@ class ProductResource extends Resource
 
                 Forms\Components\Textarea::make('description')
                     ->maxLength(65535),
+
+                Forms\Components\Hidden::make('user_id')
+                    ->default(auth()->id()),
             ]);
     }
 
@@ -75,6 +79,17 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+
+                Tables\Actions\Action::make('processProduct')
+                    ->label('Process Product')
+                    ->icon('heroicon-o-check')
+                    ->action(function ($record) {
+                        UpdateProductStatus::dispatch($record);
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('Product job dispatched!')
+                            ->send();
+                    }),
             ])
            ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
